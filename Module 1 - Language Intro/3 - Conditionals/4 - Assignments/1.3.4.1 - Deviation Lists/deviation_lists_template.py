@@ -30,3 +30,16 @@ random_list_B = random.sample(range(100), random_length)
 longest_list_is = None
 
 ### YOUR CODE HERE
+
+sample_A = np.std(random_list_A)
+sample_B = np.std(random_list_B)
+largest_sample = "none"
+
+if sample_A > sample_B:
+    longest_list_is = sample_A
+    largest_sample = "List A"
+else:
+    longest_list_is = sample_B
+    largest_sample = "List B"
+
+print("The largest standard deviation is", largest_sample, longest_list_is)
