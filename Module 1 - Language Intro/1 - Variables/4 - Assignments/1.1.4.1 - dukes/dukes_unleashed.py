@@ -13,3 +13,15 @@ Note: this problem does not require the "compounding interest" formula from the 
 in_state_gift = 0
 
 out_state_gift = 0
+
+#Varables
+in_state_cost = 30792
+out_state_cost = 47882
+rate = .05
+
+#Calculations
+in_state_gift = in_state_cost / rate
+out_state_gift = out_state_cost / rate
+
+print(in_state_gift)
+print(out_state_gift)
