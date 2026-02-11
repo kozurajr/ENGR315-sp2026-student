@@ -20,3 +20,15 @@ ten_year_final = None
 
 # final answer for 20-year
 twenty_year_final = None
+
+#varables
+principal = 33000000000
+ten_year_rate = .0396
+twenty_year_rate = .0432
+
+# Calculations
+ten_year_final = principal * (1 + ten_year_rate)**10
+twenty_year_final = principal * (1 + twenty_year_rate)**20
+
+print(ten_year_final)
+print(twenty_year_final)
