@@ -33,7 +33,7 @@ longest_list_is = None
 
 sample_A = np.std(random_list_A)
 sample_B = np.std(random_list_B)
-<<<<<<< HEAD
+
 largest_sample = "none"
 
 if sample_A > sample_B:
@@ -44,12 +44,3 @@ else:
     largest_sample = "List B"
 
 print("The largest standard deviation is", largest_sample, longest_list_is)
-=======
-
-if sample_A > sample_B:
-    longest_list_is = sample_A
-else:
-    longest_list_is = sample_B
-
-print("The longest list is: longest_list_is")
->>>>>>> 3e89f2f5c218250e2f546ca1c5ca7abdc9ca001c
