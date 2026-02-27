@@ -36,5 +36,5 @@ for number in nums:
     else:
         num_odds += 1
 
-print("Evens:", num_evens)
-print("Odds:", num_odds)
+print("Number of evens:", num_evens)
+print("Number of odds:", num_odds)
