@@ -69,9 +69,6 @@ def calculate_stress(force, sample_diameter):
     ### your code here ###
     stress = (force / area) * 1000
 
-    # delete this line and replace it with your own
-    stress = None
-
     return stress
 
 

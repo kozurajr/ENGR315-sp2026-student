@@ -67,6 +67,18 @@ def first_question(data):
     """
 
     # your code here
+    rockingham_date = None
+    harrisonburg_date = None
+
+   
+    for (date, county, state, fips, cases, deaths) in data:
+        if state == "Virginia":
+            if county == "Rockingham" and cases > 0 and rockingham_date is None:
+                rockingham_date = date
+            if county == "Harrisonburg" and cases > 0 and harrisonburg_date is None:
+                harrisonburg_date = date
+    print("First positive covid case in Rockingham was on:", rockingham_date)
+    print("First positive covid case in Harrisonburg was on:", harrisonburg_date)
     return
 
 def second_question(data):
@@ -78,6 +90,36 @@ def second_question(data):
     """
 
     # your code here
+    prev_rockingham = None
+    prev_harrisonburg = None
+
+    max_rockingham_cases = -1
+    max_rockingham_date = None
+
+    max_harrisonburg_cases = -1
+    max_harrisonburg_date = None
+    
+    for (date, county, state, fips, cases, deaths) in data:
+        if state == "Virginia":
+            if county == "Rockingham":
+                if prev_rockingham is not None:
+                    new_cases = cases - prev_rockingham
+                    if new_cases > max_rockingham_cases:
+                        max_rockingham_cases = new_cases
+                        max_rockingham_date = date
+                prev_rockingham = cases
+
+            elif county == "Harrisonburg":
+                if prev_harrisonburg is not None:
+                    new_cases = cases - prev_harrisonburg
+                    if new_cases > max_harrisonburg_cases:
+                        max_harrisonburg_cases = new_cases
+                        max_harrisonburg_date = date
+                prev_harrisonburg = cases
+
+    print("The greatest number of new daily cases in Rockingham County was on:", max_rockingham_date, "with", max_rockingham_cases, "new cases")
+    print("The greatest number of new daily cases in Harrisonburg was on:", max_harrisonburg_date, "with", max_harrisonburg_cases, "new cases")
+    
     return
 
 def third_question(data):
@@ -89,10 +131,65 @@ def third_question(data):
     """
     
     # your code here
+    rockingham_daily = []
+    harrisonburg_daily = []
+
+    prev_rockingham = None
+    prev_harrisonburg = None
+
+    for (date, county, state, fips, cases, deaths) in data:
+        if state == "Virginia":
+            if county == "Rockingham":
+                if prev_rockingham is not None:
+                    new_cases = cases - prev_rockingham
+                    rockingham_daily.append((date, new_cases))
+                prev_rockingham = cases
+
+            elif county == "Harrisonburg":
+                if prev_harrisonburg is not None:
+                    new_cases = cases - prev_harrisonburg
+                    harrisonburg_daily.append((date, new_cases))
+                prev_harrisonburg = cases
+    
+    max_rockingham_sum = -1
+    max_rockingham_start = None
+    max_rockingham_end = None
+
+    for i in range(len(rockingham_daily) - 6):
+        window = rockingham_daily[i:i+7]
+        total = 0
+        for entry in window:
+            total += entry[1]
+        if total > max_rockingham_sum:
+            max_rockingham_sum = total
+            max_rockingham_start = window[0][0]
+            max_rockingham_end = window[-1][0]
+
+    max_harrisonburg_sum = -1
+    max_harrisonburg_start = None
+    max_harrisonburg_end = None
+
+    for i in range(len(harrisonburg_daily) - 6):
+        window = harrisonburg_daily[i:i+7]
+        total = 0
+        for entry in window:
+            total += entry[1]
+        if total > max_harrisonburg_sum:
+            max_harrisonburg_sum = total
+            max_harrisonburg_start = window[0][0]
+            max_harrisonburg_end = window[-1][0]
+
+
+    print("The worst week in Rockingham County was from", max_rockingham_start, "to",
+          max_rockingham_end, "with", max_rockingham_sum, "new cases")
+
+    print("The worst week in Harrisonburg was from", max_harrisonburg_start, "to",
+          max_harrisonburg_end, "with", max_harrisonburg_sum, "new cases")
+
     return
 
 if __name__ == "__main__":
-    data = parse_nyt_data('us-counties.csv')
+    data = parse_nyt_data('\Exams\Assignment 1 - COVID Data\us-counties.csv')
 
     for (date,county, state, fips, cases, deaths) in data:
         print('On ', date, ' in ', county, ' ', state, ' there were ', cases, ' cases and ', deaths, ' deaths')
