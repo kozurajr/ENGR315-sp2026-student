@@ -35,6 +35,17 @@ def one_sample_tests(_files: list, _mean: float, _alpha: float, _less_than: bool
     reject_null_hypothesis = []
 
     # YOUR CODE HERE #
+    for filename in _files:
+        data = np.loadtxt(filename)
+
+        if _less_than:
+            test_result = ttest_1samp(data, _mean, alternative='less')
+        else:
+            test_result = ttest_1samp(data, _mean, alternative='greater')
+
+        if test_result.pvalue < _alpha:
+            reject_null_hypothesis.append(filename)
+
 
     # return samples that were rejected
     return reject_null_hypothesis
