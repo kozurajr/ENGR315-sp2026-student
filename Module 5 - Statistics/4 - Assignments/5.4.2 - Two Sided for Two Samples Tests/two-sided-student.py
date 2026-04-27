@@ -35,6 +35,25 @@ def two_sided_tests(_files1: list, _files2: list , _alpha: float):
 
     # YOUR CODE HERE #
 
+    if len(_files1) != len(_files2):
+        print("Error: file lists must be the same length.")
+        return reject_null_hypothesis
+
+    for file1, file2 in zip(_files1, _files2):
+        try:
+            sample1 = np.loadtxt(file1)
+            sample2 = np.loadtxt(file2)
+
+            t_stat, p_value = ttest_ind(sample1, sample2)
+
+            if p_value < _alpha:
+                reject_null_hypothesis.append((file1, file2))
+
+        except OSError:
+            print(f"Error reading file pair: {file1}, {file2}")
+        except ValueError:
+            print(f"Error: invalid numeric data in {file1} or {file2}")
+
     # return samples that were rejected
     return reject_null_hypothesis
 
