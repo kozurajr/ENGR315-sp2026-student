@@ -1,0 +1,210 @@
+# ENGR 315 Final Project
+# Question 1: Temporal Lag Between COVID-19 Cases and Deaths
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+def load_county_data(file_path, state_name, county_name):
+    """
+    Loads the COVID dataset, filters it to one county, and returns the filtered data.
+    """
+
+    df = pd.read_csv(file_path)
+    df = df[(df["state"] == state_name) & (df["county"] == county_name)].copy()
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.sort_values("date")
+    return df
+
+
+def calculate_daily_values(df):
+    """
+    Converts cumulative cases and deaths into daily cases and daily deaths.
+    This is done manually using loops so the process is easier to explain.
+    """
+
+    dates = []
+    daily_cases = []
+    daily_deaths = []
+
+    previous_cases = None
+    previous_deaths = None
+
+    for index, row in df.iterrows():
+
+        current_date = row["date"]
+        current_cases = row["cases"]
+        current_deaths = row["deaths"]
+
+        if previous_cases is None:
+            new_cases = 0
+            new_deaths = 0
+        else:
+            new_cases = current_cases - previous_cases
+            new_deaths = current_deaths - previous_deaths
+
+        if new_cases < 0:
+            new_cases = 0
+
+        if new_deaths < 0:
+            new_deaths = 0
+
+        dates.append(current_date)
+        daily_cases.append(new_cases)
+        daily_deaths.append(new_deaths)
+
+        previous_cases = current_cases
+        previous_deaths = current_deaths
+
+    return dates, daily_cases, daily_deaths
+
+
+def calculate_correlation(list_1, list_2):
+    """
+    Calculates correlation between two lists manually.
+    Correlation measures how closely two sets of values move together.
+    """
+
+    if len(list_1) != len(list_2):
+        return 0
+
+    if len(list_1) == 0:
+        return 0
+
+    mean_1 = sum(list_1) / len(list_1)
+    mean_2 = sum(list_2) / len(list_2)
+
+    numerator = 0
+    denominator_1 = 0
+    denominator_2 = 0
+
+    for i in range(len(list_1)):
+        difference_1 = list_1[i] - mean_1
+        difference_2 = list_2[i] - mean_2
+
+        numerator = numerator + difference_1 * difference_2
+        denominator_1 = denominator_1 + difference_1 ** 2
+        denominator_2 = denominator_2 + difference_2 ** 2
+
+    denominator = (denominator_1 * denominator_2) ** 0.5
+
+    if denominator == 0:
+        return 0
+
+    correlation = numerator / denominator
+
+    return correlation
+
+
+def find_best_lag(daily_cases, daily_deaths, max_lag):
+    """
+    Tests different lag values to determine which lag gives the strongest
+    relationship between daily cases and daily deaths.
+    """
+
+    best_lag = 0
+    best_correlation = -1
+
+    for lag in range(max_lag + 1):
+
+        cases_for_comparison = []
+        deaths_for_comparison = []
+
+        for i in range(len(daily_cases) - lag):
+            cases_for_comparison.append(daily_cases[i])
+            deaths_for_comparison.append(daily_deaths[i + lag])
+
+        if len(cases_for_comparison) == 0:
+            continue
+
+        correlation = calculate_correlation(cases_for_comparison, deaths_for_comparison)
+
+        if correlation > best_correlation:
+            best_correlation = correlation
+            best_lag = lag
+
+    return best_lag, best_correlation
+
+def analyze_question_1(file_path, state_name, county_name):
+    """
+    Main analysis for Question 1.
+    """
+
+    print("QUESTION 1: Temporal Lag Between COVID-19 Cases and Deaths")
+    print("---------------------------------------------------------")
+
+    df = load_county_data(file_path, state_name, county_name)
+
+    dates, daily_cases, daily_deaths = calculate_daily_values(df)
+
+    best_lag, best_correlation = find_best_lag(daily_cases, daily_deaths, 30)
+
+
+    print("Location:", county_name + ",", state_name)
+    print("Best estimated lag:", best_lag, "days")
+    print("Correlation at best lag:", round(best_correlation, 3))
+
+
+    shifted_deaths = []
+
+    for i in range(len(daily_deaths)):
+        shifted_index = i + best_lag
+
+        if shifted_index < len(daily_deaths):
+            shifted_deaths.append(daily_deaths[shifted_index])
+        else:
+            shifted_deaths.append(0)
+
+    
+    # GRAPH 1: Dual Y-Axis Plot
+   
+    fig, ax1 = plt.subplots()
+
+    # Left axis (cases)
+    ax1.plot(dates, daily_cases, color="blue", label="Daily Cases")
+    ax1.set_xlabel("Date")
+    ax1.set_ylabel("Daily Cases", color="blue")
+
+    # Right axis (deaths)
+    ax2 = ax1.twinx()
+    ax2.plot(dates, daily_deaths, color="orange", label="Daily Deaths")
+    ax2.set_ylabel("Daily Deaths", color="orange")
+
+    plt.title("Daily COVID-19 Cases and Deaths")
+
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
+
+
+    
+    # GRAPH 2: Lag Comparison
+    
+    fig, ax1 = plt.subplots()
+
+    # Left axis (cases)
+    ax1.plot(dates, daily_cases, color="blue", label="Daily Cases")
+    ax1.set_xlabel("Date")
+    ax1.set_ylabel("Daily Cases", color="blue")
+
+    # Right axis (shifted deaths)
+    ax2 = ax1.twinx()
+    ax2.plot(dates, shifted_deaths, color="orange", label="Daily Deaths (Shifted)")
+    ax2.set_ylabel("Daily Deaths (Shifted)", color="orange")
+
+    plt.title("COVID-19 Cases vs Deaths with Estimated Lag")
+
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
+
+
+if __name__ == "__main__":
+
+    file_path = "us-counties.csv"
+
+    state_name = "Virginia"
+    county_name = "Harrisonburg city"
+
+    analyze_question_1(file_path, state_name, county_name)
+    

@@ -26,20 +26,21 @@ print('-----Question 1-----')
 
 ### YOUR CODE HERE
 
-# Fit normal distributions
-fp_mu, fp_std = norm.fit(force_plate_rsi)
-acc_mu, acc_std = norm.fit(accelerometer_rsi)
+# this section of code fits each dataset to a normal distribution and then returns the estimated mean and standard deviation
+force_plate_mu, force_plate_std = norm.fit(force_plate_rsi)
+accel_mu, accel_std = norm.fit(accelerometer_rsi)
 
-print(f"Force Plate Normal Fit: mu = {fp_mu:.6f}, std = {fp_std:.6f}")
-print(f"Accelerometer Normal Fit: mu = {acc_mu:.6f}, std = {acc_std:.6f}")
+# This part prints the fitted normal distribution parameters for each dataset
+print(f"Force Plate Normal Fit: mu = {force_plate_mu:.6f}, std = {force_plate_std:.6f}")
+print(f"Accelerometer Normal Fit: mu = {accel_mu:.6f}, std = {accel_std:.6f}")
 
-# x-values for plotting
-x_fp = np.linspace(force_plate_rsi.min() - 0.1, force_plate_rsi.max() + 0.1, 500)
-x_acc = np.linspace(accelerometer_rsi.min() - 0.1, accelerometer_rsi.max() + 0.1, 500)
+# This sets up the x values for plotting the fitted normal probability density function curves
+x_force_plate = np.linspace(force_plate_rsi.min() - 0.1, force_plate_rsi.max() + 0.1, 500)
+x_accel = np.linspace(accelerometer_rsi.min() - 0.1, accelerometer_rsi.max() + 0.1, 500)
 
-# Force Plate plot
+# This part plots the fitted normal probability density function for the force plate RSI data
 plt.figure()
-plt.plot(x_fp, norm.pdf(x_fp, fp_mu, fp_std), label=f'Normal PDF (mu={fp_mu:.3f}, std={fp_std:.3f})')
+plt.plot(x_force_plate, norm.pdf(x_force_plate, force_plate_mu, force_plate_std), label=f'Normal PDF (mu={force_plate_mu:.3f}, std={force_plate_std:.3f})')
 plt.title("Force Plate RSI Normal Distribution")
 plt.xlabel("Force Plate RSI")
 plt.ylabel("Probability Density")
@@ -47,9 +48,10 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
-# Accelerometer plot
+# This part is just like the section above however it is set up to plot the fitted normal probabilty density function
+# for the accelerometer RSI data
 plt.figure()
-plt.plot(x_acc, norm.pdf(x_acc, acc_mu, acc_std), label=f'Normal PDF (mu={acc_mu:.3f}, std={acc_std:.3f})')
+plt.plot(x_accel, norm.pdf(x_accel, accel_mu, accel_std), label=f'Normal PDF (mu={accel_mu:.3f}, std={accel_std:.3f})')
 plt.title("Accelerometer RSI Normal Distribution")
 plt.xlabel("Accelerometer RSI")
 plt.ylabel("Probability Density")
@@ -66,30 +68,37 @@ a fit or not. Do this for both acceleration and force plate distributions. It is
 """
 print('\n\n-----Question 2-----')
 
+# This is the significance level for hypothesis testing suggested in the question
 alpha = 0.05
 
+# This part of the code creates the bin edges for the chi-square goodness of fit test
 # Suggested bin edges:
 # 9 bins between [0,2), then 1 bin [2, inf), plus lower tail (-inf, 0)
 bins = np.append(np.append([-np.inf], np.linspace(0, 2, 10)), [np.inf])
 
 def chi_square_gof(data, mu, std, label):
-    # Observed counts
+    # This part calculates observed frequencies from the actual dataset using the selected bins
     observed, edges = np.histogram(data, bins=bins)
 
-    # Expected counts from fitted normal distribution
+    #This part calculates the expected frequencies from the fitted normal distribution
+    # it uses the normal cumulative distribution function at each bin edge, then subtracts the adjacent
+    # cumulative distribution function valuues to get the probability of landing in each bin
     cdf_vals = norm.cdf(edges, loc=mu, scale=std)
     expected_probs = np.diff(cdf_vals)
     expected = expected_probs * len(data)
 
-    # Small floating-point fix so sums match exactly
+    # This section makes it so that the expected count total matches the observed total
     expected = expected * (observed.sum() / expected.sum())
 
+    # This line performs the chi-square goodness of fit test
     chi2_stat, p_value = chisquare(f_obs=observed, f_exp=expected)
 
+    # This part prints the test results for the current dataset
     print(f"{label}:")
     print(f"  chi2 stat = {chi2_stat:.6f}")
     print(f"  p-value   = {p_value:.6f}")
 
+    # This part makes a decision based on the p-value and alpha
     if p_value > alpha:
         print("  Result: Good fit to normal distribution")
     else:
@@ -101,14 +110,16 @@ Acceleration
 """
 ### YOUR CODE HERE
 
-chi_square_gof(accelerometer_rsi, acc_mu, acc_std, "Acceleration")
+# This line runs the chi-square goodness of fit test but for the accelerometer RSI data
+chi_square_gof(accelerometer_rsi, accel_mu, accel_std, "Acceleration")
 
 """
 Force Plate
 """
 ### YOUR CODE HERE
 
-chi_square_gof(force_plate_rsi, fp_mu, fp_std, "Force Plate")
+# This line does the same thing as the previous line but for the force plate RSI data
+chi_square_gof(force_plate_rsi, force_plate_mu, force_plate_std, "Force Plate")
 
 """
 Question 3: Perform a t-test to determine whether the RSI means for the acceleration and force plate data are equivalent 
@@ -119,11 +130,14 @@ print('\n\n-----Question 3-----')
 
 ### YOUR CODE HERE
 
+# This line performs a two sample t-test to compare the RSI means of the two datasets
 t_stat, p_value = ttest_ind(accelerometer_rsi, force_plate_rsi)
 
+# This section prints the t-test statistic and p-value
 print(f"t-statistic = {t_stat:.6f}")
 print(f"p-value     = {p_value:.6f}")
 
+# This part decides whether the two means are statistically different or not
 if p_value > alpha:
     print("Result: The means are statistically equal (fail to reject H0).")
 else:
@@ -140,18 +154,21 @@ legends. The default binning approach from matplot lib with 16 bins is sufficien
 
 ### YOUR CODE HERE
 
-# Error = Force Plate - Accelerometer
+# This part calculates the error as the difference between force plate RSI and accelerometer RSI
+# basicaly it is just: Error = Force Plate - Accelerometer
 rsi_error = force_plate_rsi - accelerometer_rsi
 
-# Fit normal distribution to error
+# This line fits the error data to a normal distribution
 err_mu, err_std = norm.fit(rsi_error)
 
+# This section prints the fitted normal distribution parameters for the error data
 print('\n\n-----Question 4-----')
 print(f"Error Normal Fit: mu = {err_mu:.6f}, std = {err_std:.6f}")
 
-# Plot histogram + fitted normal curve
+# This creates x values for plotting the fitted normal curve on top of the histogram
 x_err = np.linspace(rsi_error.min() - 0.05, rsi_error.max() + 0.05, 500)
 
+# This sets up the plot for the histogram of the RSI error data and overlays the fitted normal PDF
 plt.figure()
 plt.hist(rsi_error, bins=16, density=True, alpha=0.6, label="RSI Error Histogram")
 plt.plot(x_err, norm.pdf(x_err, err_mu, err_std),
